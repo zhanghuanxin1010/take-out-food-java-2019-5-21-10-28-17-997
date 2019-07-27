@@ -14,7 +14,61 @@ public class App {
 
     public String bestCharge(List<String> inputs) {
         //TODO: write code here
-
-        return null;
+    	int price=0;//花费
+    	int less=0;//节省
+    	String half="";
+    	SalesPromotion sa1 = null;//第一种优惠方式
+    	SalesPromotion sa2 = null;//第二种
+    	String str="============= 订餐明细 =============\n";//输出
+    	String[] in=(String[]) inputs.toArray();//输入
+    	//System.out.println(in);
+    	List<Item> item=itemRepository.findAll();
+    	List<SalesPromotion> sales=salesPromotionRepository.findAll();
+    	for(SalesPromotion sale:sales) {
+    		if(sale.getType().equals("BUY_30_SAVE_6_YUAN")) {
+    			sa1=sale;
+    		}else
+    			sa2=sale;
+    	}
+    	for(String ss:in) {
+    		String name=ss.substring(0, 8);
+    		int count=Integer.valueOf(ss.charAt(ss.length()-1)-48);
+    		
+    		for(Item it:item) {
+    			if(name.equals(it.getId())) {
+    				
+    				if(sa2.getRelatedItems().contains(it.getId())) {
+    					less+=((int)it.getPrice()/2);
+    					if(half=="") {
+    						half=it.getName();
+    					}else {
+    						half+=("，"+it.getName());
+    					}
+    				}
+    				str+=(it.getName()+" x "+count+" = "+(count*(int)it.getPrice())+"元\n");
+    				price+=((int)count*it.getPrice());
+    				break;
+    			}
+    		}
+    		
+    	}
+    	if(price>=30||less>0) {
+    		str+="-----------------------------------\n使用优惠:\n";
+    	}
+    	if(price>=30&&less<=6) {
+    		less=6;
+    		str+=sa1.getDisplayName();
+    		str+=("，省"+less+"元\n");
+    	}
+    	if(less>6) {
+    		str+=sa2.getDisplayName()+"("+half+")";
+    		str+=("，省"+less+"元\n");
+    	}
+    	
+    	str+="-----------------------------------\n" + 
+    			"总计："+(price-less)+"元\n" + 
+    			"===================================";
+    	
+        return str;
     }
 }
